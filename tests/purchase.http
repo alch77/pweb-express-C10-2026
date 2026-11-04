@@ -1,0 +1,73 @@
+@baseUrl = http://localhost:3000
+
+### Jalankan seed ulang dulu sebelum mengetes (id kembali ke 1)
+# npx tsx prisma/seed.ts
+# npx tsx tests/seed-players.ts   (selama prisma/seed.ts belum membuat data player)
+
+### 1. Beli hero pakai BP - player 3, Layla (id 18), 2000 BP -> 201, bp 10000 -> 8000
+POST {{baseUrl}}/api/players/3/heroes
+Content-Type: application/json
+
+{ "heroId": 18, "currency": "BP" }
+
+### 2. Beli hero yang sama lagi -> 409 sudah dimiliki
+POST {{baseUrl}}/api/players/3/heroes
+Content-Type: application/json
+
+{ "heroId": 18, "currency": "BP" }
+
+### 3. Freya (id 22) tidak punya harga BP -> 400
+POST {{baseUrl}}/api/players/3/heroes
+Content-Type: application/json
+
+{ "heroId": 22, "currency": "BP" }
+
+### 4. Beli pakai DIAMOND - player 2, Freya (id 22), 599 diamond -> 201, diamond 2892 -> 2293
+POST {{baseUrl}}/api/players/2/heroes
+Content-Type: application/json
+
+{ "heroId": 22, "currency": "DIAMOND" }
+
+### 5. Saldo kurang - player 3 beli Ling (id 84) harga 32000 BP -> 400
+POST {{baseUrl}}/api/players/3/heroes
+Content-Type: application/json
+
+{ "heroId": 84, "currency": "BP" }
+
+### 6. Player tidak ada -> 404
+POST {{baseUrl}}/api/players/999/heroes
+Content-Type: application/json
+
+{ "heroId": 18, "currency": "BP" }
+
+### 7. Hero tidak ada -> 404
+POST {{baseUrl}}/api/players/3/heroes
+Content-Type: application/json
+
+{ "heroId": 999, "currency": "BP" }
+
+### 8. Currency bukan BP/DIAMOND -> 400
+POST {{baseUrl}}/api/players/3/heroes
+Content-Type: application/json
+
+{ "heroId": 18, "currency": "GOLD" }
+
+### 9. heroId kosong -> 400
+POST {{baseUrl}}/api/players/3/heroes
+Content-Type: application/json
+
+{ "currency": "BP" }
+
+### 10. Detail player 3 setelah membeli hero (endpoint player)
+GET {{baseUrl}}/api/players/3
+
+### 11. Statistik sesudah pembelian di atas
+# totalPlayers 3, totalHeroesOwned 6, totalDiamond 2967 - 599 = 2368
+GET {{baseUrl}}/api/statistics
+
+### 12. Statistik setelah seed ulang (kondisi awal)
+# totalPlayers 3, totalHeroesOwned 4, totalDiamond 2967
+GET {{baseUrl}}/api/statistics
+
+### 13. Endpoint tidak terdaftar -> 404
+GET {{baseUrl}}/api/tidak-ada
