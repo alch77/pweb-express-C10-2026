@@ -6,7 +6,11 @@ export const getSkins = async (req: Request, res: Response) => {
     try {
         const page = Math.max(1, Number(req.query.page) || 1);
         const limit = Math.max(1, Number(req.query.limit) || 10);
-        const heroId = req.query.heroId ? Number(req.query.heroId) : undefined;
+
+        const heroId = req.query.heroId
+            ? Number(req.query.heroId)
+            : undefined;
+
         const rarity = req.query.rarity
             ? String(req.query.rarity).toUpperCase()
             : undefined;
@@ -14,10 +18,33 @@ export const getSkins = async (req: Request, res: Response) => {
         const where: any = {};
 
         if (heroId !== undefined) {
+            if (!Number.isInteger(heroId) || heroId <= 0) {
+                return res.status(400).json({
+                    status: false,
+                    message: "Hero ID tidak valid",
+                });
+            }
+
             where.heroId = heroId;
         }
 
+        const validRarities = [
+            "COMMON",
+            "EXCEPTIONAL",
+            "DELUXE",
+            "EXQUISITE",
+            "GRAND",
+            "SUPREME",
+        ];
+
         if (rarity) {
+            if (!validRarities.includes(rarity)) {
+                return res.status(400).json({
+                    status: false,
+                    message: "Rarity tidak valid",
+                });
+            }
+
             where.rarity = rarity;
         }
 

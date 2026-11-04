@@ -18,8 +18,26 @@ export const getHeroes = async (req: Request, res: Response) => {
             };
         }
 
+        const validRoles = [
+            "TANK",
+            "FIGHTER",
+            "ASSASSIN",
+            "MAGE",
+            "MARKSMAN",
+            "SUPPORT",
+        ];
+
         if (role) {
-            where.role = role.toUpperCase();
+            const selectedRole = role.toUpperCase();
+
+            if (!validRoles.includes(selectedRole)) {
+                return res.status(400).json({
+                    status: false,
+                    message: "Role tidak valid",
+                });
+            }
+
+            where.role = selectedRole;
         }
 
         const totalItems = await prisma.hero.count({ where });
@@ -58,9 +76,9 @@ export const getHeroById = async (req: Request, res: Response) => {
         const heroId = Number(req.params.hero_id);
 
         if (!Number.isInteger(heroId) || heroId <= 0) {
-            return res.status(400).json({
+            return res.status(404).json({
                 status: false,
-                message: "ID Hero tidak valid",
+                message: "Hero tidak ditemukan",
             });
         }
 

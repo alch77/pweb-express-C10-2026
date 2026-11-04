@@ -1,12 +1,10 @@
-
 import { readFileSync } from "fs";
 import path from "path";
 import { prisma } from "../src/lib/prisma";
 
 async function main() {
-    console.log("Memulai seed Hero dan Skin...");
+    console.log("Memulai seed Hero, Skin, dan Player...");
 
-    // Membaca dataset JSON
     const heroes = JSON.parse(
         readFileSync(
             path.join(process.cwd(), "data/heroes.json"),
@@ -21,8 +19,13 @@ async function main() {
         ).replace(/^\uFEFF/, "")
     );
 
-    // Menghapus data Skin lama agar tidak duplikat
-    await prisma.skin.deleteMany();
+    // Mengosongkan semua tabel dan mereset ID
+    await prisma.$executeRawUnsafe(`
+        TRUNCATE TABLE "PlayerHero", "Player", "Skin", "Hero"
+        RESTART IDENTITY CASCADE;
+    `);
+
+    console.log("Data lama berhasil dihapus");
 
     // Memasukkan data Hero
     await prisma.hero.createMany({
@@ -40,10 +43,9 @@ async function main() {
                     ? null
                     : Number(hero.priceDiamond),
         })),
-        skipDuplicates: true,
     });
 
-    console.log(`${heroes.length} data Hero berhasil diproses`);
+    console.log(`${heroes.length} Hero berhasil dimasukkan`);
 
     // Memasukkan data Skin
     await prisma.skin.createMany({
@@ -58,7 +60,62 @@ async function main() {
         })),
     });
 
-    console.log(`${skins.length} data Skin berhasil dimasukkan`);
+    console.log(`${skins.length} Skin berhasil dimasukkan`);
+
+    // Memasukkan 3 Player
+    await prisma.player.createMany({
+        data: [
+            {
+                nickname: "ArekITS",
+                bp: 1500,
+                diamond: 75,
+            },
+            {
+                nickname: "SangPushRank",
+                bp: 13000,
+                diamond: 2892,
+            },
+            {
+                nickname: "MageSurabaya",
+                bp: 10000,
+                diamond: 0,
+            },
+        ],
+    });
+
+    console.log("3 Player berhasil dimasukkan");
+
+    // Memasukkan 4 PlayerHero
+    await prisma.playerHero.createMany({
+        data: [
+            {
+                playerId: 1,
+                heroId: 18,
+                currency: "BP",
+                pricePaid: 2000,
+            },
+            {
+                playerId: 1,
+                heroId: 1,
+                currency: "BP",
+                pricePaid: 10800,
+            },
+            {
+                playerId: 2,
+                heroId: 84,
+                currency: "DIAMOND",
+                pricePaid: 599,
+            },
+            {
+                playerId: 2,
+                heroId: 56,
+                currency: "BP",
+                pricePaid: 32000,
+            },
+        ],
+    });
+
+    console.log("4 PlayerHero berhasil dimasukkan");
     console.log("Seed berhasil!");
 }
 
