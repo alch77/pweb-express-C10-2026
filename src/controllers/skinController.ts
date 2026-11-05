@@ -1,123 +1,96 @@
 import { Request, Response } from "express";
 import { prisma } from "../lib/prisma";
+import { HttpError } from "../middlewares/httpError";
+
+const RARITIES = [
+    "COMMON",
+    "EXCEPTIONAL",
+    "DELUXE",
+    "EXQUISITE",
+    "GRAND",
+    "SUPREME",
+];
 
 // GET /api/skins
 export const getSkins = async (req: Request, res: Response) => {
-    try {
-        const page = Math.max(1, Number(req.query.page) || 1);
-        const limit = Math.max(1, Number(req.query.limit) || 10);
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.max(1, Number(req.query.limit) || 10);
 
-        const heroId = req.query.heroId
-            ? Number(req.query.heroId)
-            : undefined;
+    const heroId = req.query.heroId ? Number(req.query.heroId) : undefined;
 
-        const rarity = req.query.rarity
-            ? String(req.query.rarity).toUpperCase()
-            : undefined;
+    const rarity = req.query.rarity
+        ? String(req.query.rarity).toUpperCase()
+        : undefined;
 
-        const where: any = {};
+    const where: any = {};
 
-        if (heroId !== undefined) {
-            if (!Number.isInteger(heroId) || heroId <= 0) {
-                return res.status(400).json({
-                    status: false,
-                    message: "Hero ID tidak valid",
-                });
-            }
-
-            where.heroId = heroId;
+    if (heroId !== undefined) {
+        if (!Number.isInteger(heroId) || heroId <= 0) {
+            throw new HttpError(400, "Hero ID tidak valid");
         }
 
-        const validRarities = [
-            "COMMON",
-            "EXCEPTIONAL",
-            "DELUXE",
-            "EXQUISITE",
-            "GRAND",
-            "SUPREME",
-        ];
-
-        if (rarity) {
-            if (!validRarities.includes(rarity)) {
-                return res.status(400).json({
-                    status: false,
-                    message: "Rarity tidak valid",
-                });
-            }
-
-            where.rarity = rarity;
-        }
-
-        const totalItems = await prisma.skin.count({ where });
-
-        const skins = await prisma.skin.findMany({
-            where,
-            skip: (page - 1) * limit,
-            take: limit,
-            orderBy: {
-                id: "asc",
-            },
-            include: {
-                hero: true,
-            },
-        });
-
-        res.json({
-            status: true,
-            message: "Berhasil mengambil data Skin",
-            data: skins,
-            metadata: {
-                currentPage: page,
-                limit,
-                totalItems,
-                totalPages: Math.ceil(totalItems / limit),
-            },
-        });
-    } catch (error) {
-        res.status(500).json({
-            status: false,
-            message: "Gagal mengambil data Skin",
-        });
+        where.heroId = heroId;
     }
+
+    if (rarity) {
+        if (!RARITIES.includes(rarity)) {
+            throw new HttpError(400, "Rarity tidak valid");
+        }
+
+        where.rarity = rarity;
+    }
+
+    const totalItems = await prisma.skin.count({ where });
+
+    const skins = await prisma.skin.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: {
+            id: "asc",
+        },
+        include: {
+            hero: true,
+        },
+    });
+
+    res.json({
+        status: true,
+        message: "Berhasil mengambil data Skin",
+        data: skins,
+        metadata: {
+            currentPage: page,
+            limit,
+            totalItems,
+            totalPages: Math.ceil(totalItems / limit),
+        },
+    });
 };
 
 // GET /api/skins/:skin_id
 export const getSkinById = async (req: Request, res: Response) => {
-    try {
-        const skinId = Number(req.params.skin_id);
+    const skinId = Number(req.params.skin_id);
 
-        if (!Number.isInteger(skinId) || skinId <= 0) {
-            return res.status(400).json({
-                status: false,
-                message: "ID Skin tidak valid",
-            });
-        }
-
-        const skin = await prisma.skin.findUnique({
-            where: {
-                id: skinId,
-            },
-            include: {
-                hero: true,
-            },
-        });
-
-        if (!skin) {
-            return res.status(404).json({
-                status: false,
-                message: "Skin tidak ditemukan",
-            });
-        }
-
-        res.json({
-            status: true,
-            message: "Berhasil mengambil detail Skin",
-            data: skin,
-        });
-    } catch (error) {
-        res.status(500).json({
-            status: false,
-            message: "Gagal mengambil detail Skin",
-        });
+    if (!Number.isInteger(skinId) || skinId <= 0) {
+        throw new HttpError(404, "Skin tidak ditemukan");
     }
+
+    const skin = await prisma.skin.findUnique({
+        where: {
+            id: skinId,
+        },
+        include: {
+            hero: true,
+        },
+    });
+
+    if (!skin) {
+        throw new HttpError(404, "Skin tidak ditemukan");
+    }
+
+    res.json({
+        status: true,
+        message: "Berhasil mengambil detail Skin",
+        data: skin,
+    });
 };

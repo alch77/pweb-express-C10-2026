@@ -79,7 +79,7 @@ export const buyHero = async (req: Request, res: Response) => {
         status: true,
         message: `Berhasil membeli hero ${hero.name}`,
         data: {
-            hero: { id: hero.id, name: hero.name },
+            hero,
             currency,
             pricePaid: price,
             bp: updatedPlayer.bp,

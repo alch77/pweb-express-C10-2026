@@ -1,0 +1,64 @@
+@baseUrl = http://localhost:3000
+
+### Jalankan seed ulang dulu (133 hero, 892 skin, 3 player)
+# npx tsx prisma/seed.ts
+
+### 1. Semua hero halaman 1 (default limit 10) -> 200, metadata totalItems 133, totalPages 14
+GET {{baseUrl}}/api/heroes
+
+### 2. Pagination page=2&limit=5 -> 200, currentPage 2, totalItems 133
+GET {{baseUrl}}/api/heroes?page=2&limit=5
+
+### 3. Search "la" (case-insensitive) -> 200, hanya nama yang mengandung "la"
+GET {{baseUrl}}/api/heroes?search=la&limit=5
+
+### 4. Filter role=MARKSMAN -> 200, totalItems 20
+GET {{baseUrl}}/api/heroes?role=MARKSMAN&limit=5
+
+### 5. Role tidak valid -> 400
+GET {{baseUrl}}/api/heroes?role=WIZARD
+
+### 6. Detail hero 18 (Layla) -> 200, ada array skins
+GET {{baseUrl}}/api/heroes/18
+
+### 7. Hero tidak ada -> 404
+GET {{baseUrl}}/api/heroes/999
+
+### 8. Create hero tanpa field wajib -> 400
+POST {{baseUrl}}/api/heroes
+Content-Type: application/json
+
+{ "name": "Hero Tanpa Role" }
+
+### 9. Create hero nama duplikat (Miya) -> 409
+POST {{baseUrl}}/api/heroes
+Content-Type: application/json
+
+{ "name": "Miya", "role": "MARKSMAN", "lane": "GOLD", "releaseYear": 2016 }
+
+### 10. Create hero baru -> 201 (harga opsional boleh kosong)
+POST {{baseUrl}}/api/heroes
+Content-Type: application/json
+
+{ "name": "Hero Percobaan", "role": "MAGE", "lane": "MID", "releaseYear": 2026 }
+
+### 11. Semua skin halaman 1 -> 200, metadata totalItems 892
+GET {{baseUrl}}/api/skins
+
+### 12. Filter heroId=18 -> 200, semua skin milik Layla
+GET {{baseUrl}}/api/skins?heroId=18&limit=5
+
+### 13. Filter rarity=GRAND -> 200
+GET {{baseUrl}}/api/skins?rarity=GRAND&limit=5
+
+### 14. heroId bukan angka -> 400
+GET {{baseUrl}}/api/skins?heroId=abc
+
+### 15. Rarity tidak valid -> 400
+GET {{baseUrl}}/api/skins?rarity=LEGEND
+
+### 16. Detail skin 1 -> 200, ada objek hero
+GET {{baseUrl}}/api/skins/1
+
+### 17. Skin tidak ada -> 404
+GET {{baseUrl}}/api/skins/9999

@@ -1,0 +1,109 @@
+@baseUrl = http://localhost:3000
+
+### Jalankan seed ulang dulu (player 1 ArekITS, 2 SangPushRank, 3 MageSurabaya)
+# npx tsx prisma/seed.ts
+
+### 1. Create player nickname kosong -> 400
+POST {{baseUrl}}/api/players
+Content-Type: application/json
+
+{ "nickname": "  " }
+
+### 2. Create player nickname sudah dipakai -> 409
+POST {{baseUrl}}/api/players
+Content-Type: application/json
+
+{ "nickname": "ArekITS" }
+
+### 3. Create player baru -> 201, bp 10000 diamond 0
+POST {{baseUrl}}/api/players
+Content-Type: application/json
+
+{ "nickname": "JunglerMalam" }
+
+### 4. Detail player 1 -> 200, ada daftar heroes
+GET {{baseUrl}}/api/players/1
+
+### 5. Player tidak ada -> 404
+GET {{baseUrl}}/api/players/999
+
+### 6. PATCH nickname kosong -> 400
+PATCH {{baseUrl}}/api/players/3
+Content-Type: application/json
+
+{ "nickname": "" }
+
+### 7. PATCH nickname milik player lain -> 409
+PATCH {{baseUrl}}/api/players/3
+Content-Type: application/json
+
+{ "nickname": "ArekITS" }
+
+### 8. PATCH nickname baru -> 200
+PATCH {{baseUrl}}/api/players/3
+Content-Type: application/json
+
+{ "nickname": "MageITS" }
+
+### 9. PATCH player tidak ada -> 404
+PATCH {{baseUrl}}/api/players/999
+Content-Type: application/json
+
+{ "nickname": "Hantu" }
+
+### 10. Top up amount bukan bilangan bulat -> 400
+POST {{baseUrl}}/api/players/3/topup
+Content-Type: application/json
+
+{ "amount": 1.5 }
+
+### 11. Top up amount 0 -> 400
+POST {{baseUrl}}/api/players/3/topup
+Content-Type: application/json
+
+{ "amount": 0 }
+
+### 12. Top up player tidak ada -> 404
+POST {{baseUrl}}/api/players/999/topup
+Content-Type: application/json
+
+{ "amount": 100 }
+
+### 13. Top up 1000 diamond -> 200, diamond player 3 jadi 1000
+POST {{baseUrl}}/api/players/3/topup
+Content-Type: application/json
+
+{ "amount": 1000 }
+
+### 14. Match result bukan WIN/LOSE -> 400
+POST {{baseUrl}}/api/players/3/matches
+Content-Type: application/json
+
+{ "result": "DRAW" }
+
+### 15. Match player tidak ada -> 404
+POST {{baseUrl}}/api/players/999/matches
+Content-Type: application/json
+
+{ "result": "WIN" }
+
+### 16. Menang -> 200, bpEarned 300, bp 10300
+POST {{baseUrl}}/api/players/3/matches
+Content-Type: application/json
+
+{ "result": "WIN" }
+
+### 17. Kalah -> 200, bpEarned 100, bp 10400
+POST {{baseUrl}}/api/players/3/matches
+Content-Type: application/json
+
+{ "result": "LOSE" }
+
+### 18. Hapus player 3 -> 200, PlayerHero ikut terhapus (cek via statistics)
+DELETE {{baseUrl}}/api/players/3
+
+### 19. Hapus player yang sama lagi -> 404
+DELETE {{baseUrl}}/api/players/3
+
+### 20. Statistik setelah hapus -> totalPlayers 3 (1,2 + player baru)
+GET {{baseUrl}}/api/statistics

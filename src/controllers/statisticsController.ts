@@ -16,13 +16,14 @@ export const getStatistics = async (_req: Request, res: Response) => {
         prisma.playerHero.groupBy({
             by: ["heroId"],
             _count: { heroId: true },
-            orderBy: { _count: { heroId: "desc" } },
+            // Seri dipecah oleh heroId terkecil agar hasilnya tetap sama
+            orderBy: [{ _count: { heroId: "desc" } }, { heroId: "asc" }],
             take: 1,
         }),
         prisma.hero.groupBy({
             by: ["role"],
             _count: { _all: true },
-            orderBy: { role: "asc" },
+            orderBy: [{ _count: { role: "desc" } }, { role: "asc" }],
         }),
     ]);
 
@@ -33,7 +34,7 @@ export const getStatistics = async (_req: Request, res: Response) => {
 
     res.json({
         status: true,
-        message: "Berhasil mengambil statistik toko",
+        message: "Berhasil mengambil statistik",
         data: {
             totalPlayers,
             totalHeroesOwned,
@@ -48,7 +49,7 @@ export const getStatistics = async (_req: Request, res: Response) => {
                     : null,
             heroesPerRole: heroesPerRoleRaw.map((row) => ({
                 role: row.role,
-                totalHeroes: row._count._all,
+                total: row._count._all,
             })),
         },
     });
