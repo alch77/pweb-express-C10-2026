@@ -128,7 +128,7 @@ const main = async () => {
     check("match LOSE -> bp 10400", r.status === 200 && r.json.data.bp === 10400 && r.json.data.bpEarned === 100, r.json?.data);
 
     r = await req("POST", "/api/players/3/heroes", { heroId: 18, currency: "BP" });
-    check("beli Layla BP -> bp 8400", r.status === 201 && r.json.data.bp === 8400 && r.json.data.pricePaid === 2000, r.json?.data);
+    check("beli Layla BP -> bp 8400", r.status === 201 && r.json.data.balance.bp === 8400 && r.json.data.pricePaid === 2000, r.json?.data);
 
     r = await req("POST", "/api/players/3/heroes", { heroId: 18, currency: "BP" });
     check("beli ulang 409", r.status === 409, r);
@@ -137,7 +137,7 @@ const main = async () => {
     check("Freya BP 400", r.status === 400, r);
 
     r = await req("POST", "/api/players/2/heroes", { heroId: 22, currency: "DIAMOND" });
-    check("beli Freya DIAMOND -> 2293", r.status === 201 && r.json.data.diamond === 2293, r.json?.data);
+    check("beli Freya DIAMOND -> 2293", r.status === 201 && r.json.data.balance.diamond === 2293, r.json?.data);
 
     r = await req("POST", "/api/players/3/heroes", { heroId: 84, currency: "BP" });
     check("saldo kurang 400", r.status === 400, r);

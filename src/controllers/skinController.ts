@@ -50,7 +50,7 @@ export const getSkins = async (req: Request, res: Response) => {
             id: "asc",
         },
         include: {
-            hero: true,
+            hero: { select: { name: true } },
         },
     });
 
@@ -80,7 +80,7 @@ export const getSkinById = async (req: Request, res: Response) => {
             id: skinId,
         },
         include: {
-            hero: true,
+            hero: { select: { name: true } },
         },
     });
 
