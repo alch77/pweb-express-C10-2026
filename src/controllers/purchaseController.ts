@@ -35,7 +35,7 @@ export const buyHero = async (req: Request, res: Response) => {
     if (price === null) {
         throw new HttpError(
             400,
-            `Hero ${hero.name} tidak memiliki harga ${currency}`
+            `Hero ${hero.name} tidak bisa dibeli dengan ${currency}`
         );
     }
 
@@ -82,8 +82,10 @@ export const buyHero = async (req: Request, res: Response) => {
             hero,
             currency,
             pricePaid: price,
-            bp: updatedPlayer.bp,
-            diamond: updatedPlayer.diamond,
+            balance: {
+                bp: updatedPlayer.bp,
+                diamond: updatedPlayer.diamond,
+            },
         },
     });
 };
