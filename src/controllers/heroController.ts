@@ -3,6 +3,7 @@ import { prisma } from "../lib/prisma";
 import { HttpError } from "../middlewares/httpError";
 
 const ROLES = ["TANK", "FIGHTER", "ASSASSIN", "MAGE", "MARKSMAN", "SUPPORT"];
+const LANES = ["EXP", "GOLD", "MID", "JUNGLE", "ROAM"];
 
 // GET /api/heroes
 export const getHeroes = async (req: Request, res: Response) => {
@@ -87,10 +88,14 @@ export const createHero = async (req: Request, res: Response) => {
     const { name, role, lane, releaseYear, priceBP, priceDiamond } =
         req.body ?? {};
 
+    const heroName = typeof name === "string" ? name.trim() : "";
+    const heroRole = String(role ?? "").toUpperCase();
+    const heroLane = String(lane ?? "").toUpperCase();
+
     if (
-        !name ||
-        !role ||
-        !lane ||
+        !heroName ||
+        !heroRole ||
+        !heroLane ||
         releaseYear === undefined ||
         releaseYear === null ||
         releaseYear === ""
@@ -101,9 +106,17 @@ export const createHero = async (req: Request, res: Response) => {
         );
     }
 
+    if (!ROLES.includes(heroRole)) {
+        throw new HttpError(400, "Role tidak valid");
+    }
+
+    if (!LANES.includes(heroLane)) {
+        throw new HttpError(400, "Lane tidak valid");
+    }
+
     const existingHero = await prisma.hero.findUnique({
         where: {
-            name: String(name),
+            name: heroName,
         },
     });
 
@@ -116,9 +129,9 @@ export const createHero = async (req: Request, res: Response) => {
     try {
         hero = await prisma.hero.create({
             data: {
-                name: String(name),
-                role: String(role).toUpperCase() as any,
-                lane: String(lane).toUpperCase() as any,
+                name: heroName,
+                role: heroRole as any,
+                lane: heroLane as any,
                 releaseYear: Number(releaseYear),
                 priceBP:
                     priceBP === "" || priceBP == null
